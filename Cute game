@@ -1,0 +1,113 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Random;
+
+public class CatchTheStarsGame extends JPanel implements ActionListener, KeyListener {
+    private Timer timer;
+    private int score;
+    private int playerX;
+    private int playerWidth = 50;
+    private int playerHeight = 50;
+    private int windowWidth = 500;
+    private int windowHeight = 600;
+    private ArrayList<Star> stars;
+    private Random random;
+    
+    public CatchTheStarsGame() {
+        timer = new Timer(30, this);
+        score = 0;
+        playerX = windowWidth / 2 - playerWidth / 2;
+        stars = new ArrayList<>();
+        random = new Random();
+        setFocusable(true);
+        addKeyListener(this);
+        timer.start();
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        
+        // Background
+        g.setColor(Color.CYAN);
+        g.fillRect(0, 0, windowWidth, windowHeight);
+        
+        // Player
+        g.setColor(Color.MAGENTA);
+        g.fillRect(playerX, windowHeight - playerHeight - 30, playerWidth, playerHeight);
+        
+        // Stars
+        g.setColor(Color.YELLOW);
+        for (Star star : stars) {
+            g.fillOval(star.x, star.y, star.size, star.size);
+        }
+        
+        // Score display
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        g.drawString("Score: " + score, 20, 30);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        // Add new star randomly
+        if (random.nextInt(100) < 5) {
+            stars.add(new Star(random.nextInt(windowWidth), 0, 20));
+        }
+
+        // Move stars down
+        for (int i = 0; i < stars.size(); i++) {
+            Star star = stars.get(i);
+            star.y += 5; // Speed of falling stars
+
+            // Check if the star is caught by the player
+            if (star.y + star.size >= windowHeight - playerHeight - 30 && 
+                star.x + star.size > playerX && star.x < playerX + playerWidth) {
+                stars.remove(i);
+                score++;
+            } else if (star.y > windowHeight) {
+                // Remove the star if it falls out of bounds
+                stars.remove(i);
+            }
+        }
+
+        repaint();
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_LEFT && playerX > 0) {
+            playerX -= 20;
+        } else if (e.getKeyCode() == KeyEvent.VK_RIGHT && playerX < windowWidth - playerWidth) {
+            playerX += 20;
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) { }
+
+    @Override
+    public void keyTyped(KeyEvent e) { }
+
+    // Star class to handle falling stars
+    class Star {
+        int x, y, size;
+
+        public Star(int x, int y, int size) {
+            this.x = x;
+            this.y = y;
+            this.size = size;
+        }
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Catch the Falling Stars");
+        CatchTheStarsGame game = new CatchTheStarsGame();
+        frame.add(game);
+        frame.setSize(500, 600);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+    }
+}
